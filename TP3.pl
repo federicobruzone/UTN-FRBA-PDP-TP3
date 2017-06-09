@@ -4,144 +4,135 @@
 % 2a Entrega: 10/6/2017
 
 %Entidades - Casas:
-propiedad("Tinsmith Circle 1774", 700, 3, true, 0).
-propiedad("Av Moreno 708", 2000, 7, true, 30).
-propiedad("Av Siempre Viva 742", 1000, 4, true, 0).
-propiedad("Calle Falsa 123", 200, 3, false, 0).
+propiedad(tinsmithCircle1774).
+propiedad(avMoreno708).
+propiedad(avSiempreViva742).
+propiedad(calleFalsa123).
 
-%Getters - Casas:
-nombrePropiedad(_Propiedad, NombrePropiedad) :- propiedad(NombrePropiedad, _,_,_,_).
-precioAlquiler(NombrePropiedad, Precio) :- propiedad(NombrePropiedad, Precio,_,_,_).
-cantidadAmbientes(NombrePropiedad, Ambientes) :- propiedad(NombrePropiedad, _, Ambientes,_,_).
-tieneJardin(NombrePropiedad) :- propiedad(NombrePropiedad,_,_,true,_).
-tienePiscina(NombrePropiedad) :- propiedad(NombrePropiedad,_,_,_,MetrosCuadrados), MetrosCuadrados > 0.
-metrosPiscina(NombrePropiedad, MetrosCuadrados) :- tienePiscina(NombrePropiedad), propiedad(NombrePropiedad,_,_,_,MetrosCuadrados).
+% propiedad(Propiedad) :- precio(Propiedad, _).
 
-% Entidades - Caracteristicas:
-caracteristica("2 ambientes").
-caracteristica("3 ambientes").
-caracteristica("Jardin").
-caracteristica("Piscina de 15 mts cuadrados").
-caracteristica("Piscina de 100 mts cuadrados").
-	
-% Entidades - Personas:
-persona("Carlos").
-persona("Ana").
-persona("Maria").
-persona("Pedro").
-persona("Chameleon").
+% Functores - Casas:
+precio(tinsmithCircle1774, 700).
+precio(avMoreno708, 2000).
+precio(avSiempreViva742, 1000).
+precio(calleFalsa123, 200).
+
+tiene(tinsmithCircle1774, ambientes(3)).
+tiene(tinsmithCircle1774, jardin).
+
+tiene(avMoreno708, ambientes(7)).
+tiene(avMoreno708, jardin).
+tiene(avMoreno708, piscina(30)).
+
+tiene(avSiempreViva742, ambientes(4)).
+tiene(avSiempreViva742, jardin).
+
+tiene(calleFalsa123, ambientes(3)).
 
 % Reglas - Casas:
-tienenMismosAmbientes(Propiedad1, Propiedad2) :-
-	cantidadAmbientes(Propiedad1, Ambientes),
-	cantidadAmbientes(Propiedad2, Ambientes),
-	Propiedad1 \= Propiedad2.
-tieneAmbientes(NombrePropiedad, Cantidad) :- 
-	cantidadAmbientes(NombrePropiedad, Ambientes),
-	Ambientes >= Cantidad.
-tieneMetrosPiscina(NombrePropiedad, Cantidad) :- 
-	tienePiscina(NombrePropiedad),
-	metrosPiscina(NombrePropiedad, MetrosCuadrados),
-	MetrosCuadrados >= Cantidad.
+tienenMismosAmbientes(Casa1, Casa2) :-
+	tiene(Casa1, ambientes(X)),
+	tiene(Casa2, ambientes(X)),
+	Casa1 \= Casa2.
 	
-%Reglas - Caracteristicas:
-tieneCaracteristica(Casa, caracteristica("Jardin")) :-
-	tieneJardin(Casa).
-tieneCaracteristica(Casa, caracteristica("2 ambientes")) :-
-	tieneAmbientes(Casa, 2).
-tieneCaracteristica(Casa, caracteristica("3 ambientes")) :-
-	tieneAmbientes(Casa, 3).
-tieneCaracteristica(Casa, caracteristica("Piscina de 15 mts cuadrados")) :-
-	tieneMetrosPiscina(Casa, 15).
-tieneCaracteristica(Casa, caracteristica("Piscina de 100 mts cuadrados")) :-
-	tieneMetrosPiscina(Casa, 100).
+cumple(Propiedad, Caracteristica) :-
+	tiene(Propiedad, Caracteristica).
 
-seDeseaCaracteristica(Casa, Caracteristica) :-
-	busca(persona(_Persona), Caracteristica),
-	tieneCaracteristica(Casa, Caracteristica).
+cumple(Propiedad, ambientes(NumeroAAlcanzar)) :-
+	tiene(Propiedad, ambientes(NumeroReal)),
+	NumeroReal >= NumeroAAlcanzar.
 
-existeConEsaCaracteristica(Caracteristica) :-
-	busca(persona(_Persona), Caracteristica),
-	tieneCaracteristica(_Casa, Caracteristica).
+cumple(Propiedad, piscina(NumeroAAlcanzar)) :-
+	tiene(Propiedad, piscina(NumeroReal)),
+	NumeroReal >= NumeroAAlcanzar.
 
+% Entidades - Usuarios:
+usuario(carlos).
+usuario(ana).
+usuario(maria).
+usuario(pedro).
+usuario(chameleon).
+
+quiere(carlos, ambientes(3)).
+quiere(carlos, jardin).
+
+quiere(ana, piscina(100)).
+
+quiere(maria, ambientes(2)).
+quiere(maria, piscina(15)).
+
+% Functores - Usuarios:
+quiere(pedro, Caracteristica) :- quiere(maria, Caracteristica).
+
+quiere(chameleon, Caracteristica) :- 
+	usuario(Persona),
+	Persona \= chameleon,
+	quiere(Persona, Caracteristica).
+
+tieneAlgoDeLoQueQuiere(Persona, Propiedad) :-
+	usuario(Persona),
+	quiere(Persona, Caracteristica),
+	cumple(Propiedad, Caracteristica).
+
+seDeseaCaracteristica(Propiedad, Caracteristica) :-
+	quiere(_Persona, Caracteristica),
+	cumple(Propiedad, Caracteristica).
+	
 noExisteConEsaCaracteristica(Caracteristica) :-
-	busca(persona(_Persona), Caracteristica),
-	not(tieneCaracteristica(_Casa, Caracteristica)).
-	
-%Reglas - Personas:
-busca(persona("Carlos"), caracteristica("3 ambientes")).
-busca(persona("Carlos"), caracteristica("Jardin")).
-busca(persona("Ana"), caracteristica("Piscina de 100 mts cuadrados")).
-busca(persona("Maria"), caracteristica("2 ambientes")).
-busca(persona("Maria"), caracteristica("Piscina de 15 mts cuadrados")).
-busca(persona("Pedro"), Caracteristica) :- 
-	busca(persona("Maria"), Caracteristica).
-busca(persona("Chameleon"), Caracteristica) :- 
-	persona(Persona), 
-	Persona \= "Chameleon", 
-	busca(persona(Persona), Caracteristica).
-
-tieneLoQueQuiere(Persona, Casa) :- 
-	busca(persona(Persona), Caracteristica),
-	tieneCaracteristica(Casa, Caracteristica).
-
+	quiere(_Persona, Caracteristica),
+	not(cumple(_Propiedad, Caracteristica)).
 
 
 /* CONSULTAS:
 ******Consulta 1******
-?- metrosPiscina(_, 30).
-true .
-
-?- metrosPiscina(Casa, 30).
-Casa = "Av Moreno 708" .
+?- tiene(Propiedad, piscina(30)).
+Propiedad = avMoreno708.
 
 ******Consulta 2******
 ?- tienenMismosAmbientes(Casa1, Casa2).
-Casa1 = "Tinsmith Circle 1774",
-Casa2 = "Calle Falsa 123" ;
-Casa1 = "Calle Falsa 123",
-Casa2 = "Tinsmith Circle 1774" ;
-false.
+Casa1 = tinsmithCircle1774,
+Casa2 = calleFalsa123 ;
+Casa1 = calleFalsa123,
+Casa2 = tinsmithCircle1774 ;
 
 ******Consulta 3******
-?- busca(persona("Carlos"), Caracteristica).
-Caracteristica = caracteristica("3 ambientes") ;
-Caracteristica = caracteristica("Jardin") ;
-false.0
+?- quiere(pedro, Caracteristica).
+Caracteristica = ambientes(2) ;
+Caracteristica = piscina(15).
 
 ******Consulta 4******
-?- tieneAmbientes(_, 2).
-true .
+?- cumple(Propiedad, ambientes(2)).
+Propiedad = tinsmithCircle1774 ;
+Propiedad = avMoreno708 ;
+Propiedad = avSiempreViva742 ;
+Propiedad = calleFalsa123.
 
 ******Consulta 5******
-?- tieneLoQueQuiere("Pedro", Casa).
-Casa = "Tinsmith Circle 1774" ;
-Casa = "Av Moreno 708" ;
-Casa = "Av Siempre Viva 742" ;
-Casa = "Calle Falsa 123" ;
-Casa = "Av Moreno 708" ;
-false.
+?- tieneAlgoDeLoQueQuiere(pedro, Propiedad).
+Propiedad = tinsmithCircle1774 ;
+Propiedad = avMoreno708 ;
+Propiedad = avSiempreViva742 ;
+Propiedad = calleFalsa123 ;
+Propiedad = avMoreno708.
 
 ******Consulta 6******
-?- seDeseaCaracteristica("Av Moreno 708", Caracteristica).
-Caracteristica = caracteristica("3 ambientes") ;
-Caracteristica = caracteristica("Jardin") ;
-Caracteristica = caracteristica("2 ambientes") ;
-Caracteristica = caracteristica("Piscina de 15 mts cuadrados") ;
-Caracteristica = caracteristica("2 ambientes") ;
-Caracteristica = caracteristica("Piscina de 15 mts cuadrados") ;
-Caracteristica = caracteristica("3 ambientes") ;
-Caracteristica = caracteristica("Jardin") ;
-Caracteristica = caracteristica("2 ambientes") ;
-Caracteristica = caracteristica("Piscina de 15 mts cuadrados") ;
-Caracteristica = caracteristica("2 ambientes") ;
-Caracteristica = caracteristica("Piscina de 15 mts cuadrados") ;
-false.
+?- seDeseaCaracteristica(avMoreno708, Caracteristica).
+Caracteristica = ambientes(3) ;
+Caracteristica = jardin ;
+Caracteristica = ambientes(2) ;
+Caracteristica = piscina(15) ;
+Caracteristica = ambientes(2) ;
+Caracteristica = piscina(15) ;
+Caracteristica = ambientes(3) ;
+Caracteristica = jardin ;
+Caracteristica = ambientes(2) ;
+Caracteristica = piscina(15) ;
+Caracteristica = ambientes(2) ;
+Caracteristica = piscina(15) ;
 
 ******Consulta 7******
 ?- noExisteConEsaCaracteristica(Caracteristica).
-Caracteristica = caracteristica("Piscina de 100 mts cuadrados") ;
-Caracteristica = caracteristica("Piscina de 100 mts cuadrados") ;
-false.
+Caracteristica = piscina(100) ;
+Caracteristica = piscina(100) ;
 */
 
